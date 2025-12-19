@@ -80,12 +80,44 @@ This project requires a Supabase database for authentication and data storage. F
      ```
      Replace `your-supabase-url` and `your-anon-key` with the values from your Supabase project.
 
-5. **Run Database Migrations** (if applicable):
+5. **Set Up Database Tables**:
 
-   - Use the Supabase SQL editor to set up your database schema as required by the application.
+   - Use the following SQL commands in the Supabase SQL editor to create the necessary tables:
+
+     ```sql
+     -- Users table
+     CREATE TABLE users (
+         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+         email TEXT UNIQUE NOT NULL,
+         password TEXT NOT NULL,
+         created_at TIMESTAMP DEFAULT now()
+     );
+
+     -- Vacations table
+     CREATE TABLE vacations (
+         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+         user_id UUID REFERENCES users(id),
+         title TEXT NOT NULL,
+         start_date DATE NOT NULL,
+         end_date DATE NOT NULL,
+         created_at TIMESTAMP DEFAULT now()
+     );
+
+     -- Locations table
+     CREATE TABLE locations (
+         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+         vacation_id UUID REFERENCES vacations(id),
+         name TEXT NOT NULL,
+         latitude FLOAT NOT NULL,
+         longitude FLOAT NOT NULL,
+         created_at TIMESTAMP DEFAULT now()
+     );
+     ```
 
 6. **Test the Connection**:
    - Start the development server and ensure the application connects to Supabase successfully.
+
+---
 
 ## Contributing
 
