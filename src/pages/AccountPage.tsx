@@ -1,6 +1,6 @@
 import React from "react";
-import { supabase } from "./supabaseClient.ts";
-import { StyledInput, StyledButton } from "./ui.tsx";
+import { supabase } from "../../src/supabaseClient.ts";
+import { StyledInput, StyledButton } from "../../src/ui.tsx";
 
 // (Removed broken duplicate export default function declaration)
 type AccountPageProps = {

@@ -30,9 +30,9 @@ Vacation Planner is a web application designed to help users plan, organize, and
    ```bash
    git clone https://github.com/imadragonsz/Vacation-planner.git
    ```
-2. Navigate to the project directory:
+2. Navigate to the `client` directory:
    ```bash
-   cd vacation_planner/client
+   cd Vacation-planner/client
    ```
 3. Install dependencies:
    ```bash

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "./supabaseClient.ts";
+import { supabase } from "../supabaseClient.ts";
 
 export type Agenda = {
   id: number;

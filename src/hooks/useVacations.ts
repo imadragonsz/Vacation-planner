@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { supabase } from "./supabaseClient";
-import { Vacation } from "./vacation";
+import { supabase } from "../supabaseClient";
+import { Vacation } from "../vacation";
 
 export function useVacations() {
   const [vacations, setVacations] = useState<Vacation[]>([]);
