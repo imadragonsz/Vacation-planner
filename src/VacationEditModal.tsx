@@ -1,7 +1,7 @@
 import React from "react";
 import { Vacation } from "./vacation";
-import { StyledInput, StyledButton } from "./ui.tsx";
-import ModalOverlay from "./ModalOverlay.tsx";
+import { StyledInput, StyledButton } from "./ui";
+import ModalOverlay from "./ModalOverlay";
 
 interface VacationEditModalProps {
   vacation: Vacation | null;

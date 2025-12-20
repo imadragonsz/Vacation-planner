@@ -1,6 +1,6 @@
 import React from "react";
 import { Vacation } from "./vacation";
-import { supabase } from "./supabaseClient.ts"; // Adjust the import based on your project structure
+import { supabase } from "./supabaseClient"; // Adjust the import based on your project structure
 
 interface VacationListItemProps {
   vacation: Vacation;

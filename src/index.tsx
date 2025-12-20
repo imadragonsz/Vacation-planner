@@ -2,9 +2,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./styles/index.css";
 import "./styles/App.css";
-import App from "./App.tsx";
-import * as serviceWorkerRegistration from "./serviceWorkerRegistration.ts";
-import reportWebVitals from "./reportWebVitals.ts";
+import App from "./App";
+import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import reportWebVitals from "./reportWebVitals";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import GlobalCalendarPage from "./pages/GlobalCalendarPage";
+import PersonalCalendarPage from "./pages/PersonalCalendarPage";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -15,7 +18,13 @@ function Root() {
 
   return (
     <React.StrictMode>
-      <App user={user} setUser={setUser} />
+      <Router>
+        <Routes>
+          <Route path="/" element={<App user={user} setUser={setUser} />} />
+          <Route path="/global-calendar" element={<GlobalCalendarPage />} />
+          <Route path="/personal-calendar" element={<PersonalCalendarPage />} />
+        </Routes>
+      </Router>
     </React.StrictMode>
   );
 }

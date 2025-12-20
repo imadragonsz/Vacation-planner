@@ -1,13 +1,13 @@
 import React, { useState, Suspense } from "react";
-import { useLocations, VacationLocation } from "../hooks/useLocations.ts";
-import { useAgendas } from "../hooks/useAgendas.ts";
-import { supabase } from "../../src/supabaseClient.ts";
+import { useLocations, VacationLocation } from "../hooks/useLocations";
+import { useAgendas } from "../hooks/useAgendas";
+import { supabase } from "../../src/supabaseClient";
 import { Vacation } from "../../src/vacation";
-import { StyledInput, StyledButton } from "../../src/ui.tsx";
-import ConfirmDialog from "../../src/ConfirmDialog.tsx";
-import { darkTheme, lightTheme } from "../../src/styles/theme.ts";
+import { StyledInput, StyledButton } from "../../src/ui";
+import ConfirmDialog from "../../src/ConfirmDialog";
+import { darkTheme, lightTheme } from "../../src/styles/theme";
 
-const VacationMap = React.lazy(() => import("../../src/VacationMap.tsx"));
+const VacationMap = React.lazy(() => import("../../src/VacationMap"));
 
 export function VacationDetails({
   vacationId,
@@ -43,8 +43,11 @@ export function VacationDetails({
                 lng: parseFloat(data[0].lon),
               };
             }
-          } catch {}
-          return { ...loc };
+          } catch (error) {
+            console.error("Error fetching geocode data:", error);
+          } finally {
+            return { ...loc };
+          }
         })
       );
       if (!cancelled) setGeoLocations(results);

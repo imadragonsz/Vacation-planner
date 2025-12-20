@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { supabase } from "../supabaseClient.ts";
-import { StyledInput, StyledButton } from "../ui.tsx";
+import { supabase } from "../supabaseClient";
+import { StyledInput, StyledButton } from "../ui";
 
 interface AuthFormProps {
   themeVars: any;

@@ -1,6 +1,6 @@
 import React from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { agendaIcon, locationIcon } from "./markerIcons.ts";
+import { agendaIcon, locationIcon } from "./markerIcons";
 import "leaflet/dist/leaflet.css";
 
 export type Location = {

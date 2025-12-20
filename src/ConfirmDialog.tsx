@@ -1,6 +1,6 @@
 import React from "react";
-import ModalOverlay from "./ModalOverlay.tsx";
-import { StyledButton } from "./ui.tsx";
+import ModalOverlay from "./ModalOverlay";
+import { StyledButton } from "./ui";
 
 interface ConfirmDialogProps {
   open: boolean;

@@ -62,3 +62,21 @@ export function handleRedo(
   setVacations(redoStack[0]);
   setToast({ message: "Redid change.", type: "info" });
 }
+
+export async function fetchPersonalEvents(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .eq("user_id", userId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching personal events:", error);
+    return [];
+  }
+}

@@ -1,6 +1,7 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
-interface NavBarProps {
+export interface NavBarProps {
   themeVars: any;
   theme: "dark" | "light";
   setTheme: (theme: "dark" | "light") => void;
@@ -8,9 +9,11 @@ interface NavBarProps {
   setShowAccount: (show: boolean) => void;
   setShowCalendar: (show: boolean) => void;
   handleLogout: () => Promise<void>;
+  setShowAuthModal?: (show: boolean) => void; // Optional prop for showing auth modal
+  onCalendarToggle: () => void; // Prop for toggling the calendar
 }
 
-function NavBar({
+const NavBar: React.FC<NavBarProps> = ({
   themeVars,
   theme,
   setTheme,
@@ -18,7 +21,11 @@ function NavBar({
   setShowAccount,
   setShowCalendar,
   handleLogout,
-}: NavBarProps) {
+  setShowAuthModal,
+  onCalendarToggle,
+}) => {
+  const navigate = useNavigate();
+
   return (
     <nav
       className="vp-nav"
@@ -90,6 +97,50 @@ function NavBar({
       </button>
       <button
         className="vp-nav-btn"
+        aria-label="Global Calendar"
+        title="Global Calendar"
+        onClick={() => navigate("/global-calendar")}
+        style={{
+          background: "none",
+          border: "none",
+          color: themeVars.text,
+          fontWeight: 700,
+          fontSize: 22,
+          cursor: "pointer",
+          letterSpacing: 1,
+          outline: "2px solid transparent",
+          outlineOffset: 2,
+          minWidth: 44,
+          minHeight: 44,
+        }}
+        tabIndex={0}
+      >
+        Global Calendar
+      </button>
+      <button
+        className="vp-nav-btn"
+        aria-label="Personal Calendar"
+        title="Personal Calendar"
+        onClick={() => navigate("/personal-calendar")}
+        style={{
+          background: "none",
+          border: "none",
+          color: themeVars.text,
+          fontWeight: 700,
+          fontSize: 22,
+          cursor: "pointer",
+          letterSpacing: 1,
+          outline: "2px solid transparent",
+          outlineOffset: 2,
+          minWidth: 44,
+          minHeight: 44,
+        }}
+        tabIndex={0}
+      >
+        Personal Calendar
+      </button>
+      <button
+        className="vp-nav-btn"
         aria-label="Account settings"
         title="Account"
         onClick={() => user && setShowAccount(true)}
@@ -112,22 +163,20 @@ function NavBar({
       >
         Account
       </button>
-      {user && (
+      {user ? (
         <button
           className="vp-nav-btn"
           aria-label="Log out"
           title="Log Out"
           onClick={handleLogout}
           style={{
-            background: "#e74c3c",
-            color: "#fff",
+            background: "none",
             border: "none",
-            borderRadius: 8,
-            padding: "10px 18px",
+            color: themeVars.text,
             fontWeight: 700,
-            fontSize: 20,
+            fontSize: 22,
             cursor: "pointer",
-            marginLeft: 16,
+            letterSpacing: 1,
             outline: "2px solid transparent",
             outlineOffset: 2,
             minWidth: 44,
@@ -136,6 +185,29 @@ function NavBar({
           tabIndex={0}
         >
           Log Out
+        </button>
+      ) : (
+        <button
+          className="vp-nav-btn"
+          aria-label="Login/Register"
+          title="Login/Register"
+          onClick={() => setShowAuthModal && setShowAuthModal(true)}
+          style={{
+            background: "none",
+            border: "none",
+            color: themeVars.text,
+            fontWeight: 700,
+            fontSize: 22,
+            cursor: "pointer",
+            letterSpacing: 1,
+            outline: "2px solid transparent",
+            outlineOffset: 2,
+            minWidth: 44,
+            minHeight: 44,
+          }}
+          tabIndex={0}
+        >
+          Login/Register
         </button>
       )}
       <button
@@ -164,8 +236,30 @@ function NavBar({
       >
         {theme === "dark" ? "Light Mode" : "Dark Mode"}
       </button>
+      <button
+        className="vp-nav-btn"
+        aria-label="Toggle Vacation Calendar"
+        title="Toggle Vacation Calendar"
+        onClick={onCalendarToggle}
+        style={{
+          background: "none",
+          border: "none",
+          color: themeVars.text,
+          fontWeight: 700,
+          fontSize: 22,
+          cursor: "pointer",
+          letterSpacing: 1,
+          outline: "2px solid transparent",
+          outlineOffset: 2,
+          minWidth: 44,
+          minHeight: 44,
+        }}
+        tabIndex={0}
+      >
+        Toggle Calendar
+      </button>
     </nav>
   );
-}
+};
 
 export default NavBar;
