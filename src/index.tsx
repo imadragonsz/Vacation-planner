@@ -6,8 +6,6 @@ import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import GlobalCalendarPage from "./pages/GlobalCalendarPage";
-import PersonalCalendarPage from "./pages/PersonalCalendarPage";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -21,8 +19,6 @@ function Root() {
       <Router>
         <Routes>
           <Route path="/" element={<App user={user} setUser={setUser} />} />
-          <Route path="/global-calendar" element={<GlobalCalendarPage />} />
-          <Route path="/personal-calendar" element={<PersonalCalendarPage />} />
         </Routes>
       </Router>
     </React.StrictMode>

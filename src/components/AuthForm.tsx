@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "../supabaseClient";
-import { StyledInput, StyledButton } from "../ui";
+import { StyledButton } from "../ui";
 
 interface AuthFormProps {
   themeVars: any;
@@ -23,15 +23,15 @@ function AuthForm({
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const resetEmailRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null!);
+  const passwordRef = useRef<HTMLInputElement>(null!);
+  const resetEmailRef = useRef<HTMLInputElement>(null!);
 
   useEffect(() => {
-    if (mode === "reset" && resetEmailRef.current)
+    if (mode === "reset" && resetEmailRef.current) {
       resetEmailRef.current.focus();
-    else if (mode === "register" || mode === "login") {
-      if (emailRef.current) emailRef.current.focus();
+    } else if (emailRef.current) {
+      emailRef.current.focus();
     }
   }, [mode]);
 
@@ -39,29 +39,71 @@ function AuthForm({
     e.preventDefault();
     setMsg(null);
     setLoading(true);
-    if (mode === "login") {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      onAuth(error);
-    } else if (mode === "register") {
-      const { error } = await supabase.auth.signUp({ email, password });
+
+    const actions = {
+      login: async () => supabase.auth.signInWithPassword({ email, password }),
+      register: async () => supabase.auth.signUp({ email, password }),
+      reset: async () => supabase.auth.resetPasswordForEmail(resetEmail),
+    };
+
+    const { error, data } = await actions[mode]();
+    console.log(`${mode} response:`, { error, data });
+
+    if (mode === "register" || mode === "reset") {
       setMsg(
-        error ? error.message : "Check your email for a confirmation link."
-      );
-    } else if (mode === "reset") {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail);
-      setMsg(
-        error ? error.message : "Check your email for a password reset link."
+        error
+          ? error.message
+          : mode === "register"
+          ? "Check your email for a confirmation link."
+          : "Check your email for a password reset link."
       );
     }
+
+    if (mode === "login") {
+      onAuth(error);
+    }
+
     setLoading(false);
   }
 
+  useEffect(() => {
+    // Reset input values when mode changes
+    if (mode === "login" || mode === "register") {
+      setEmail("");
+      setPassword("");
+    } else if (mode === "reset") {
+      setResetEmail("");
+    }
+  }, [mode]);
+
   return (
-    <form onSubmit={handleSubmit} className="auth-form-modal-form">
-      <h2 className="auth-form-title">
+    <form
+      key={mode} // Force remount on mode change
+      onSubmit={handleSubmit}
+      className="auth-form-modal-form"
+      style={{
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "20px",
+        padding: "32px",
+        width: "100%",
+        maxWidth: "420px",
+        backgroundColor: themeVars.card,
+        borderRadius: "16px",
+        boxShadow: "0px 8px 32px rgba(0, 0, 0, 0.2)",
+        color: themeVars.text,
+        zIndex: 1000,
+      }}
+    >
+      <h2
+        className="auth-form-title"
+        style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "10px" }}
+      >
         {mode === "login"
           ? "Sign In"
           : mode === "register"
@@ -69,28 +111,46 @@ function AuthForm({
           : "Reset Password"}
       </h2>
       {mode !== "reset" && (
-        <StyledInput
+        <input
           ref={emailRef}
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          themeVars={themeVars}
-          className="auth-form-input"
+          style={{
+            width: "100%",
+            padding: "14px",
+            borderRadius: "10px",
+            border: "1px solid #ccc",
+            fontSize: "16px",
+          }}
         />
       )}
       {(mode === "login" || mode === "register") && (
-        <div className="auth-form-password-row">
-          <StyledInput
+        <div
+          className="auth-form-password-row"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            width: "100%",
+          }}
+        >
+          <input
             ref={passwordRef}
             type={showPassword ? "text" : "password"}
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            themeVars={themeVars}
-            className="auth-form-input auth-form-password-input"
+            style={{
+              width: "100%",
+              padding: "14px",
+              borderRadius: "10px",
+              border: "1px solid #ccc",
+              fontSize: "16px",
+            }}
           />
           <button
             type="button"
@@ -98,21 +158,35 @@ function AuthForm({
             aria-label={showPassword ? "Hide password" : "Show password"}
             onClick={() => setShowPassword((v) => !v)}
             className="auth-form-password-toggle"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: themeVars.text,
+              fontSize: "18px",
+            }}
           >
             {showPassword ? "🙈" : "👁️"}
           </button>
         </div>
       )}
       {mode === "reset" && (
-        <StyledInput
+        <input
           ref={resetEmailRef}
           type="email"
           placeholder="Email"
           value={resetEmail}
-          onChange={(e) => setResetEmail(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setResetEmail(e.target.value)
+          }
           required
-          themeVars={themeVars}
-          className="auth-form-input"
+          style={{
+            width: "100%",
+            padding: "14px",
+            borderRadius: "10px",
+            border: "1px solid #ccc",
+            fontSize: "16px",
+          }}
         />
       )}
       <StyledButton
@@ -121,6 +195,15 @@ function AuthForm({
         themeVars={themeVars}
         disabled={loading}
         className="auth-form-submit"
+        style={{
+          width: "100%",
+          padding: "14px",
+          borderRadius: "10px",
+          fontSize: "18px",
+          backgroundColor: themeVars.accent,
+          color: themeVars.text,
+          fontWeight: "bold",
+        }}
       >
         {loading
           ? "Loading..."
@@ -130,7 +213,15 @@ function AuthForm({
           ? "Register"
           : "Send Reset Link"}
       </StyledButton>
-      <div className="auth-form-links-row">
+      <div
+        className="auth-form-links-row"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          width: "100%",
+          fontSize: "16px",
+        }}
+      >
         {mode !== "login" && (
           <StyledButton
             type="button"
@@ -140,10 +231,15 @@ function AuthForm({
               color: themeVars.accent,
               cursor: "pointer",
               textDecoration: "underline",
-              fontSize: 14,
+              fontSize: "14px",
             }}
             themeVars={themeVars}
-            onClick={() => setMode("login")}
+            onClick={() => {
+              setMode("login");
+              setEmail("");
+              setPassword("");
+              setResetEmail("");
+            }}
           >
             Back to Login
           </StyledButton>
@@ -158,10 +254,14 @@ function AuthForm({
                 color: themeVars.accent,
                 cursor: "pointer",
                 textDecoration: "underline",
-                fontSize: 14,
+                fontSize: "14px",
               }}
               themeVars={themeVars}
-              onClick={() => setMode("register")}
+              onClick={() => {
+                setMode("register");
+                setEmail("");
+                setPassword("");
+              }}
             >
               Register
             </StyledButton>
@@ -173,10 +273,13 @@ function AuthForm({
                 color: themeVars.accent,
                 cursor: "pointer",
                 textDecoration: "underline",
-                fontSize: 14,
+                fontSize: "14px",
               }}
               themeVars={themeVars}
-              onClick={() => setMode("reset")}
+              onClick={() => {
+                setMode("reset");
+                setResetEmail("");
+              }}
             >
               Forgot Password?
             </StyledButton>
@@ -184,7 +287,7 @@ function AuthForm({
         )}
       </div>
       {(errorMsg || msg) && (
-        <p style={{ color: errorMsg ? "red" : "green", marginTop: 12 }}>
+        <p style={{ color: errorMsg ? "red" : "green", marginTop: "12px" }}>
           {errorMsg || msg}
         </p>
       )}

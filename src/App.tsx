@@ -4,13 +4,13 @@ import { supabase } from "./supabaseClient";
 import NavBar from "./components/NavBar";
 import { VacationCalendar } from "./pages/VacationCalendar";
 import VacationEditModal from "./VacationEditModal";
-import AuthForm from "./components/AuthForm";
-import VacationListItem from "./VacationListItem";
 import { VacationDetails } from "./pages/VacationDetails";
 import AccountPage from "./pages/AccountPage";
 import "./styles/App.css";
 import { darkTheme, lightTheme } from "./styles/theme";
 import { useVacations, useAddVacation } from "./hooks/useVacations";
+import VacationListItem from "./VacationListItem";
+import AuthForm from "./components/AuthForm";
 
 interface Vacation {
   id: number;
@@ -55,7 +55,6 @@ function App({ user, setUser }: AppProps) {
   const [showArchived, setShowArchived] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [editingVacation, setEditingVacation] = useState<Vacation | null>(null);
   const [editingVacationValues, setEditingVacationValues] =
     useState<Vacation | null>(null);
@@ -66,6 +65,10 @@ function App({ user, setUser }: AppProps) {
   const [redoStack, setRedoStack] = useState<Vacation[][]>([]);
   const [dbStatus, setDbStatus] = useState("checking");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register" | "reset">(
+    "login"
+  );
 
   const themeVars = theme === "dark" ? darkTheme : lightTheme;
 
@@ -216,6 +219,7 @@ function App({ user, setUser }: AppProps) {
           user={user}
           setShowAccount={setShowAccount}
           setShowCalendar={setShowCalendar}
+          setShowAuthModal={setShowAuthModal} // Pass the setShowAuthModal prop
           handleLogout={async () => {
             await supabase.auth.signOut();
             setUser(null);
@@ -242,166 +246,168 @@ function App({ user, setUser }: AppProps) {
   // Main application layout
   return (
     <UserContext.Provider value={{ user }}>
-      {user ? (
-        <div className="vp-main">
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              background: themeVars.background,
-              zIndex: -1,
-            }}
-            aria-hidden="true"
+      <div className="vp-main">
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: themeVars.background,
+            zIndex: -1,
+          }}
+          aria-hidden="true"
+        />
+        <NavBar
+          onCalendarToggle={() => setShowCalendar((prev) => !prev)}
+          themeVars={themeVars}
+          theme={theme}
+          setTheme={setTheme}
+          user={user}
+          setShowAccount={setShowAccount}
+          setShowCalendar={setShowCalendar}
+          setShowAuthModal={setShowAuthModal} // Pass the setShowAuthModal prop
+          handleLogout={async () => {
+            await supabase.auth.signOut();
+            setUser(null);
+            setShowAccount(false);
+          }}
+        />
+        {dbStatus === "error" && (
+          <div style={{ color: "red" }}>
+            Error connecting to the database. Some features may not work.
+          </div>
+        )}
+        {showCalendar && (
+          <VacationCalendar
+            vacations={vacations}
+            onVacationClick={setEditingVacation}
+            onEditVacation={pushUndo}
           />
-          <NavBar
-            onCalendarToggle={() => setShowCalendar((prev) => !prev)}
+        )}
+        {editingVacation && (
+          <VacationEditModal
+            vacation={editingVacation}
+            values={editingVacationValues}
+            onChange={(values) => setEditingVacationValues(values)}
+            onSave={handleSaveVacation}
+            onClose={() => setEditingVacation(null)}
             themeVars={themeVars}
-            theme={theme}
-            setTheme={setTheme}
-            user={user}
-            setShowAccount={setShowAccount}
-            setShowCalendar={setShowCalendar}
-            setShowAuthModal={setShowAuthModal}
-            handleLogout={async () => {
-              await supabase.auth.signOut();
-              setUser(null);
-              setShowAccount(false);
-            }}
           />
-          {dbStatus === "error" && (
-            <div style={{ color: "red" }}>
-              Error connecting to the database. Some features may not work.
-            </div>
-          )}
-          {showCalendar && (
-            <VacationCalendar
-              vacations={vacations}
-              onVacationClick={setEditingVacation}
-              onEditVacation={pushUndo}
+        )}
+        <div className="vp-content">
+          <form onSubmit={addVacation} className="vp-form">
+            <input
+              type="text"
+              placeholder="Trip Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="vp-input"
             />
-          )}
-          {editingVacation && (
-            <VacationEditModal
-              vacation={editingVacation}
-              values={editingVacationValues}
-              onChange={(values) => setEditingVacationValues(values)}
-              onSave={handleSaveVacation}
-              onClose={() => setEditingVacation(null)}
-              themeVars={themeVars}
+            <input
+              type="text"
+              placeholder="Destination"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              required
+              className="vp-input"
             />
-          )}
-          {showAuthModal && (
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              required
+              className="vp-input"
+            />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              required
+              className="vp-input"
+            />
+            <button type="submit" disabled={loading} className="vp-button">
+              Add Vacation
+            </button>
+          </form>
+          <aside className="vp-sidebar">
+            <h2>Your Vacations</h2>
+            <input
+              type="text"
+              placeholder="Search vacations..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="vp-input"
+            />
+            <label>
+              <input
+                type="checkbox"
+                checked={showArchived}
+                onChange={(e) => setShowArchived(e.target.checked)}
+              />
+              Show Archived Vacations
+            </label>
+            <ul>
+              {displayedVacations.map((vacation) => (
+                <VacationListItem
+                  key={vacation.id}
+                  vacation={vacation}
+                  selected={selectedVacation?.id === vacation.id}
+                  themeVars={themeVars}
+                  onSelect={() => setSelectedVacation(vacation)}
+                  onEdit={openEditVacationModal}
+                  onDelete={() => handleArchiveVacation(vacation)}
+                />
+              ))}
+            </ul>
+          </aside>
+          <main className="vp-main-content">
+            {selectedVacation && (
+              <div className="vp-details">
+                <VacationDetails
+                  vacationId={selectedVacation.id}
+                  theme={theme}
+                  user={user}
+                />
+              </div>
+            )}
+          </main>
+        </div>
+        <footer className="vp-footer">© 2025 Vacation Planner</footer>
+        <button
+          onClick={handleRedo}
+          disabled={redoStack.length === 0}
+          className="vp-button"
+        >
+          Redo
+        </button>
+        <button
+          onClick={handleUndo}
+          disabled={undoStack.length === 0}
+          className="vp-button"
+        >
+          Undo
+        </button>
+        <button onClick={() => setShowAuthModal(true)} className="vp-button">
+          Log In
+        </button>
+
+        {showAuthModal && (
+          <div className="auth-modal-wrapper">
             <AuthForm
               themeVars={themeVars}
-              mode="login"
-              setMode={() => {}}
+              mode={authMode}
+              setMode={setAuthMode}
               errorMsg={null}
               onAuth={(err) => {
                 if (!err) setShowAuthModal(false);
               }}
             />
-          )}
-          <div className="vp-content">
-            <form onSubmit={addVacation} className="vp-form">
-              <input
-                type="text"
-                placeholder="Trip Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="vp-input"
-              />
-              <input
-                type="text"
-                placeholder="Destination"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                required
-                className="vp-input"
-              />
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                required
-                className="vp-input"
-              />
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                required
-                className="vp-input"
-              />
-              <button type="submit" disabled={loading} className="vp-button">
-                Add Vacation
-              </button>
-            </form>
-            <aside className="vp-sidebar">
-              <h2>Your Vacations</h2>
-              <input
-                type="text"
-                placeholder="Search vacations..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="vp-input"
-              />
-              <label>
-                <input
-                  type="checkbox"
-                  checked={showArchived}
-                  onChange={(e) => setShowArchived(e.target.checked)}
-                />
-                Show Archived Vacations
-              </label>
-              <ul>
-                {displayedVacations.map((vacation) => (
-                  <VacationListItem
-                    key={vacation.id}
-                    vacation={vacation}
-                    selected={selectedVacation?.id === vacation.id}
-                    themeVars={themeVars}
-                    onSelect={() => setSelectedVacation(vacation)}
-                    onEdit={openEditVacationModal}
-                    onDelete={() => handleArchiveVacation(vacation)}
-                  />
-                ))}
-              </ul>
-            </aside>
-            <main className="vp-main-content">
-              {selectedVacation && (
-                <div className="vp-details">
-                  <VacationDetails
-                    vacationId={selectedVacation.id}
-                    theme={theme}
-                    user={user}
-                  />
-                </div>
-              )}
-            </main>
           </div>
-          <footer className="vp-footer">© 2025 Vacation Planner</footer>
-          <button
-            onClick={handleRedo}
-            disabled={redoStack.length === 0}
-            className="vp-button"
-          >
-            Redo
-          </button>
-          <button
-            onClick={handleUndo}
-            disabled={undoStack.length === 0}
-            className="vp-button"
-          >
-            Undo
-          </button>
-        </div>
-      ) : (
-        <div>Please log in to continue.</div>
-      )}
+        )}
+      </div>
     </UserContext.Provider>
   );
 }

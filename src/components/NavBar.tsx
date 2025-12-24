@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
 export interface NavBarProps {
   themeVars: any;
@@ -22,242 +21,219 @@ const NavBar: React.FC<NavBarProps> = ({
   setShowCalendar,
   handleLogout,
   setShowAuthModal,
-  onCalendarToggle,
 }) => {
-  const navigate = useNavigate();
-
   return (
     <nav
-      className="vp-nav"
+      className="vp-navbar"
       aria-label="Main navigation"
       style={{
-        width: "100%",
-        background: themeVars.card,
-        boxShadow: themeVars.shadow,
-        padding: "16px 0",
-        marginBottom: 32,
         display: "flex",
+        justifyContent: "space-between",
         alignItems: "center",
-        justifyContent: "center",
-        gap: 32,
+        padding: "10px 20px",
+        backgroundColor: themeVars.navBackground,
+        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)",
+        borderBottom: `2px solid ${themeVars.border}`,
+        borderRadius: "0 0 8px 8px",
+        width: "100%",
+        marginBottom: 32,
         position: "sticky",
         top: 0,
         zIndex: 100,
       }}
     >
-      <button
-        className="vp-nav-btn"
-        aria-label="Go to Home"
-        title="Home"
-        onClick={() => {
-          setShowAccount(false);
-          setShowCalendar(false);
-        }}
+      <div
+        className="vp-navbar-left"
         style={{
-          background: "none",
-          border: "none",
+          display: "flex",
+          gap: "30px",
+          fontSize: "18px",
+          fontWeight: "bold",
           color: themeVars.text,
-          fontWeight: 700,
-          fontSize: 22,
-          cursor: "pointer",
-          letterSpacing: 1,
-          outline: "2px solid transparent",
-          outlineOffset: 2,
-          minWidth: 44,
-          minHeight: 44,
         }}
-        tabIndex={0}
       >
-        Home
-      </button>
-      <button
-        className="vp-nav-btn"
-        aria-label="Show Calendar"
-        title="Calendar"
-        onClick={() => {
-          setShowAccount(false);
-          setShowCalendar(true);
-        }}
-        style={{
-          background: "none",
-          border: "none",
-          color: themeVars.text,
-          fontWeight: 700,
-          fontSize: 22,
-          cursor: "pointer",
-          letterSpacing: 1,
-          outline: "2px solid transparent",
-          outlineOffset: 2,
-          minWidth: 44,
-          minHeight: 44,
-        }}
-        tabIndex={0}
-      >
-        Calendar
-      </button>
-      <button
-        className="vp-nav-btn"
-        aria-label="Global Calendar"
-        title="Global Calendar"
-        onClick={() => navigate("/global-calendar")}
-        style={{
-          background: "none",
-          border: "none",
-          color: themeVars.text,
-          fontWeight: 700,
-          fontSize: 22,
-          cursor: "pointer",
-          letterSpacing: 1,
-          outline: "2px solid transparent",
-          outlineOffset: 2,
-          minWidth: 44,
-          minHeight: 44,
-        }}
-        tabIndex={0}
-      >
-        Global Calendar
-      </button>
-      <button
-        className="vp-nav-btn"
-        aria-label="Personal Calendar"
-        title="Personal Calendar"
-        onClick={() => navigate("/personal-calendar")}
-        style={{
-          background: "none",
-          border: "none",
-          color: themeVars.text,
-          fontWeight: 700,
-          fontSize: 22,
-          cursor: "pointer",
-          letterSpacing: 1,
-          outline: "2px solid transparent",
-          outlineOffset: 2,
-          minWidth: 44,
-          minHeight: 44,
-        }}
-        tabIndex={0}
-      >
-        Personal Calendar
-      </button>
-      <button
-        className="vp-nav-btn"
-        aria-label="Account settings"
-        title="Account"
-        onClick={() => user && setShowAccount(true)}
-        style={{
-          background: "none",
-          border: "none",
-          color: user ? themeVars.text : "#aaa",
-          fontWeight: 700,
-          fontSize: 22,
-          cursor: user ? "pointer" : "not-allowed",
-          letterSpacing: 1,
-          outline: "2px solid transparent",
-          outlineOffset: 2,
-          minWidth: 44,
-          minHeight: 44,
-          opacity: user ? 1 : 0.5,
-        }}
-        tabIndex={user ? 0 : -1}
-        disabled={!user}
-      >
-        Account
-      </button>
-      {user ? (
         <button
           className="vp-nav-btn"
-          aria-label="Log out"
-          title="Log Out"
-          onClick={handleLogout}
+          aria-label="Go to Home"
+          title="Home"
+          onClick={() => {
+            setShowAccount(false);
+            setShowCalendar(false);
+          }}
           style={{
             background: "none",
             border: "none",
             color: themeVars.text,
-            fontWeight: 700,
-            fontSize: 22,
             cursor: "pointer",
-            letterSpacing: 1,
-            outline: "2px solid transparent",
-            outlineOffset: 2,
-            minWidth: 44,
-            minHeight: 44,
+            fontSize: "18px",
+            fontWeight: "bold",
+            padding: "8px 12px",
+            borderRadius: "4px",
+            transition: "background-color 0.3s ease",
           }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = themeVars.hoverBackground)
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor = "transparent")
+          }
           tabIndex={0}
         >
-          Log Out
+          Home
         </button>
-      ) : (
         <button
           className="vp-nav-btn"
-          aria-label="Login/Register"
-          title="Login/Register"
-          onClick={() => setShowAuthModal && setShowAuthModal(true)}
+          aria-label="Show Calendar"
+          title="Calendar"
+          onClick={() => {
+            setShowAccount(false);
+            setShowCalendar(true);
+          }}
           style={{
             background: "none",
             border: "none",
             color: themeVars.text,
-            fontWeight: 700,
-            fontSize: 22,
             cursor: "pointer",
-            letterSpacing: 1,
-            outline: "2px solid transparent",
-            outlineOffset: 2,
-            minWidth: 44,
-            minHeight: 44,
+            fontSize: "18px",
+            fontWeight: "bold",
+            padding: "8px 12px",
+            borderRadius: "4px",
+            transition: "background-color 0.3s ease",
           }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = themeVars.hoverBackground)
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor = "transparent")
+          }
           tabIndex={0}
         >
-          Login/Register
+          Calendar
         </button>
-      )}
-      <button
-        className="vp-nav-btn"
-        aria-label={
-          theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-        }
-        title={theme === "dark" ? "Light Mode" : "Dark Mode"}
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        <button
+          className="vp-nav-btn"
+          aria-label="Account settings"
+          title="Account"
+          onClick={() => user && setShowAccount(true)}
+          style={{
+            background: "none",
+            border: "none",
+            color: user ? themeVars.text : "#aaa",
+            cursor: user ? "pointer" : "not-allowed",
+            fontSize: "18px",
+            fontWeight: "bold",
+            padding: "8px 12px",
+            borderRadius: "4px",
+            transition: "background-color 0.3s ease",
+          }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = themeVars.hoverBackground)
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor = "transparent")
+          }
+          tabIndex={user ? 0 : -1}
+          disabled={!user}
+        >
+          Account
+        </button>
+      </div>
+      <div
+        className="vp-navbar-right"
         style={{
-          background: themeVars.accent2,
+          display: "flex",
+          gap: "20px",
+          fontSize: "18px",
+          fontWeight: "bold",
           color: themeVars.text,
-          border: "none",
-          borderRadius: 8,
-          padding: "10px 18px",
-          fontWeight: 600,
-          fontSize: 18,
-          cursor: "pointer",
-          marginLeft: 32,
-          outline: "2px solid transparent",
-          outlineOffset: 2,
-          minWidth: 44,
-          minHeight: 44,
         }}
-        tabIndex={0}
       >
-        {theme === "dark" ? "Light Mode" : "Dark Mode"}
-      </button>
-      <button
-        className="vp-nav-btn"
-        aria-label="Toggle Vacation Calendar"
-        title="Toggle Vacation Calendar"
-        onClick={onCalendarToggle}
-        style={{
-          background: "none",
-          border: "none",
-          color: themeVars.text,
-          fontWeight: 700,
-          fontSize: 22,
-          cursor: "pointer",
-          letterSpacing: 1,
-          outline: "2px solid transparent",
-          outlineOffset: 2,
-          minWidth: 44,
-          minHeight: 44,
-        }}
-        tabIndex={0}
-      >
-        Toggle Calendar
-      </button>
+        {user ? (
+          <button
+            className="vp-nav-btn"
+            aria-label="Log out"
+            title="Log Out"
+            onClick={handleLogout}
+            style={{
+              background: "none",
+              border: "none",
+              color: themeVars.text,
+              cursor: "pointer",
+              fontSize: "18px",
+              fontWeight: "bold",
+              padding: "8px 12px",
+              borderRadius: "4px",
+              transition: "background-color 0.3s ease",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor =
+                themeVars.hoverBackground)
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "transparent")
+            }
+            tabIndex={0}
+          >
+            Log Out
+          </button>
+        ) : (
+          <button
+            className="vp-nav-btn"
+            aria-label="Login/Register"
+            title="Login/Register"
+            onClick={() => setShowAuthModal && setShowAuthModal(true)}
+            style={{
+              background: "none",
+              border: "none",
+              color: themeVars.text,
+              cursor: "pointer",
+              fontSize: "18px",
+              fontWeight: "bold",
+              padding: "8px 12px",
+              borderRadius: "4px",
+              transition: "background-color 0.3s ease",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor =
+                themeVars.hoverBackground)
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "transparent")
+            }
+            tabIndex={0}
+          >
+            Login/Register
+          </button>
+        )}
+        <button
+          className="vp-nav-mode-toggle"
+          aria-label={
+            theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+          }
+          title={theme === "dark" ? "Light Mode" : "Dark Mode"}
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          style={{
+            backgroundColor: themeVars.accent,
+            color: themeVars.text,
+            fontSize: "16px",
+            fontWeight: "bold",
+            padding: "8px 16px",
+            borderRadius: "4px",
+            border: "none",
+            cursor: "pointer",
+            transition: "background-color 0.3s ease",
+          }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = themeVars.hoverAccent)
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor = themeVars.accent)
+          }
+          tabIndex={0}
+        >
+          {theme === "dark" ? "Light Mode" : "Dark Mode"}
+        </button>
+      </div>
     </nav>
   );
 };
