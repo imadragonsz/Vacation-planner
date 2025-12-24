@@ -1,4 +1,5 @@
-import { createContext, useContext } from "react";
+import { createContext, useEffect, useState } from "react";
+import { supabase } from "./supabaseClient";
 
 export const ThemeContext = createContext({
   themeVars: {},
@@ -23,5 +24,30 @@ export const UserContext = createContext<UserContextType>({
 });
 
 export const useUser = () => {
-  return useContext(UserContext);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      console.log("Fetched user:", user); // Log the fetched user
+      setUser(user);
+    };
+
+    fetchUser();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        console.log("Auth state changed. Current user:", session?.user); // Log auth state changes
+        setUser(session?.user || null);
+      }
+    );
+
+    return () => {
+      subscription?.subscription.unsubscribe();
+    };
+  }, []);
+
+  return { user };
 };

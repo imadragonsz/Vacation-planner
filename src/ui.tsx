@@ -37,10 +37,12 @@ const StyledButton: React.FC<StyledButtonProps> = ({
   danger,
   themeVars,
   style,
+  disabled,
   ...props
 }) => (
   <button
     {...props}
+    disabled={disabled}
     style={{
       background: danger
         ? "#e74c3c"
@@ -51,10 +53,11 @@ const StyledButton: React.FC<StyledButtonProps> = ({
       border: "none",
       borderRadius: 8,
       padding: "10px 20px",
-      cursor: "pointer",
+      cursor: disabled ? "not-allowed" : "pointer",
       fontWeight: 600,
       fontSize: 15,
       marginRight: accent || danger ? 10 : 0,
+      opacity: disabled ? 0.6 : 1,
       ...style,
     }}
   />

@@ -16,7 +16,7 @@ export function VacationDetails({
 }: {
   vacationId: number;
   theme?: "dark" | "light";
-  user?: any;
+  user: any;
 }) {
   const themeVars = theme === "dark" ? darkTheme : lightTheme;
   const { locations, addLocation, updateLocation, removeLocation } =
@@ -113,6 +113,7 @@ export function VacationDetails({
     e.preventDefault();
     if (editAgendaDate && editAgendaDesc) {
       if (editingAgendaId) {
+        // Update existing agenda
         await updateAgenda(
           editingAgendaId,
           editAgendaDate,
@@ -120,8 +121,10 @@ export function VacationDetails({
           agendaAddr
         );
       } else {
+        // Add new agenda
         await addAgenda(editAgendaDate, editAgendaDesc, agendaAddr);
       }
+      // Clear form fields after submission
       setEditAgendaDate("");
       setEditAgendaDesc("");
       setAgendaAddr("");
@@ -160,7 +163,7 @@ export function VacationDetails({
       </div>
 
       <div style={{ marginBottom: 12 }}>
-        {user && (
+        {true && (
           <form
             onSubmit={handleAddLocation}
             style={{
@@ -186,7 +189,12 @@ export function VacationDetails({
               themeVars={themeVars}
               style={{ minWidth: 120 }}
             />
-            <StyledButton type="submit" accent themeVars={themeVars}>
+            <StyledButton
+              type="submit"
+              accent
+              themeVars={themeVars}
+              disabled={!true}
+            >
               Add
             </StyledButton>
           </form>
@@ -251,7 +259,12 @@ export function VacationDetails({
                       themeVars={themeVars}
                       style={{ minWidth: 80 }}
                     />
-                    <StyledButton type="submit" accent themeVars={themeVars}>
+                    <StyledButton
+                      type="submit"
+                      accent
+                      themeVars={themeVars}
+                      disabled={!true}
+                    >
                       Save
                     </StyledButton>
                     <StyledButton
@@ -283,7 +296,7 @@ export function VacationDetails({
                         </span>
                       )}
                     </span>
-                    {user && (
+                    {true && (
                       <span
                         style={{ display: "flex", gap: 4 }}
                         onClick={(e) => e.stopPropagation()}
@@ -303,6 +316,7 @@ export function VacationDetails({
                             opacity: 0.7,
                             padding: 2,
                           }}
+                          disabled={!true}
                         >
                           ✏️
                         </StyledButton>
@@ -317,6 +331,7 @@ export function VacationDetails({
                             opacity: 0.7,
                             padding: 2,
                           }}
+                          disabled={!true}
                         >
                           🗑️
                         </StyledButton>
@@ -368,12 +383,12 @@ export function VacationDetails({
                 borderRadius: 6,
               }}
               onClick={() => setEditingAgendaId(null)}
-              disabled={editingAgendaId === null}
+              disabled={editingAgendaId === null || !true}
             >
               Clear Edit
             </StyledButton>
           </div>
-          {user && (
+          {true && (
             <form
               onSubmit={handleAddAgenda}
               style={{
@@ -406,7 +421,12 @@ export function VacationDetails({
                 themeVars={themeVars}
                 style={{ minWidth: 120 }}
               />
-              <StyledButton type="submit" accent themeVars={themeVars}>
+              <StyledButton
+                type="submit"
+                accent
+                themeVars={themeVars}
+                disabled={!true}
+              >
                 {editingAgendaId ? "Update Agenda" : "Add Agenda"}
               </StyledButton>
             </form>
@@ -535,6 +555,27 @@ export function VacationDetails({
                     >
                       🗑️
                     </StyledButton>
+                    {ag.address && (
+                      <StyledButton
+                        title="Get Route"
+                        onClick={() => {
+                          const routeUrl = `https://www.openstreetmap.org/directions?route=;${encodeURIComponent(
+                            ag.address || ""
+                          )}`;
+                          window.open(routeUrl, "_blank");
+                        }}
+                        themeVars={themeVars}
+                        style={{
+                          background: themeVars.accent,
+                          color: themeVars.text,
+                          fontSize: 14,
+                          padding: "4px 8px",
+                          borderRadius: 4,
+                        }}
+                      >
+                        Get Route
+                      </StyledButton>
+                    )}
                   </span>
                   <ConfirmDialog
                     open={confirmDeleteAgendaId === ag.id}
@@ -567,7 +608,6 @@ export function VacationEditor({
   const [name, setName] = useState(vacation.name);
   const [startDate, setStartDate] = useState(vacation.start_date);
   const [endDate, setEndDate] = useState(vacation.end_date);
-  const [showDelete, setShowDelete] = useState(false);
   const themeVars = darkTheme;
 
   async function handleUpdateVacation() {
@@ -578,17 +618,6 @@ export function VacationEditor({
 
     if (!error) {
       setEditing(false);
-      onVacationUpdated();
-    }
-  }
-
-  async function handleArchiveVacation() {
-    const { error } = await supabase
-      .from("vacations")
-      .update({ archived: true })
-      .eq("id", vacation.id);
-
-    if (!error) {
       onVacationUpdated();
     }
   }
@@ -640,20 +669,6 @@ export function VacationEditor({
           >
             Edit
           </StyledButton>
-          <StyledButton
-            onClick={() => setShowDelete(true)}
-            danger
-            themeVars={themeVars}
-          >
-            Archive
-          </StyledButton>
-          <ConfirmDialog
-            open={showDelete}
-            message="Archive this vacation?"
-            onConfirm={handleArchiveVacation}
-            onCancel={() => setShowDelete(false)}
-            themeVars={themeVars}
-          />
         </div>
       )}
     </div>

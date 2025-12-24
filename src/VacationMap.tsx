@@ -68,15 +68,12 @@ const LocationPopup: React.FC<LocationPopupProps> = ({
 type AgendaMarkerProps = { agenda: Agenda };
 
 const AgendaMarker: React.FC<AgendaMarkerProps> = ({ agenda }) => {
-  // Debug: log when AgendaMarker renders
-  console.log("AgendaMarker rendered for agenda:", agenda);
   const [coords, setCoords] = React.useState<{
     lat: number;
     lng: number;
   } | null>(null);
 
   React.useEffect(() => {
-    console.log("AgendaMarker useEffect running for address:", agenda.address);
     if (!agenda.address) return;
     fetch(
       `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(
@@ -85,7 +82,6 @@ const AgendaMarker: React.FC<AgendaMarkerProps> = ({ agenda }) => {
     )
       .then((res) => res.json())
       .then((data) => {
-        console.log("AgendaMarker geocode result for", agenda.address, data);
         if (data && data.length > 0) {
           setCoords({
             lat: parseFloat(data[0].lat),
@@ -97,6 +93,13 @@ const AgendaMarker: React.FC<AgendaMarkerProps> = ({ agenda }) => {
         console.error("AgendaMarker geocode error for", agenda.address, err);
       });
   }, [agenda.address]);
+
+  const handleGetRoute = () => {
+    if (coords) {
+      const routeUrl = `https://www.openstreetmap.org/directions?route=;${coords.lat},${coords.lng}`;
+      window.open(routeUrl, "_blank");
+    }
+  };
 
   if (!agenda.address) return null;
   if (!coords) {
@@ -134,6 +137,10 @@ const AgendaMarker: React.FC<AgendaMarkerProps> = ({ agenda }) => {
           <b>Date:</b> {agenda.agenda_date}
           <br />
           <b>Address:</b> {agenda.address}
+          <br />
+          <button onClick={handleGetRoute} style={{ marginTop: 8 }}>
+            Get Route
+          </button>
         </div>
       </Popup>
     </Marker>
@@ -155,10 +162,6 @@ const VacationMap = ({
       ? [locations[0].lat, locations[0].lng]
       : [35, 135]; // Japan as fallback
 
-  // Debug logging
-  console.log("VacationMap locations:", locations);
-  console.log("VacationMap agendas:", agendas);
-
   return (
     <div style={{ height: 400, width: "100%", marginBottom: 24 }}>
       <MapContainer
@@ -169,7 +172,6 @@ const VacationMap = ({
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {locations.map((loc) => {
           if (loc.lat && loc.lng) {
-            console.log("Rendering marker for location:", loc);
             return (
               <Marker
                 key={loc.id}

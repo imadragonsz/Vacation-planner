@@ -7,16 +7,22 @@ export function useVacations(fetchVacations: () => void, pushUndo: () => void) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAllVacations = useCallback(async () => {
+  const fetchAllVacations = useCallback(async (includeArchived = false) => {
     setLoading(true);
     setError(null);
     const { data, error } = await supabase
       .from("vacations")
       .select("*")
-      .eq("archived", false)
       .order("id", { ascending: false });
-    if (!error && data) setVacations(data as Vacation[]);
-    else setError(error?.message || "Failed to fetch vacations");
+
+    if (!error && data) {
+      const filteredData = includeArchived
+        ? data
+        : data.filter((vacation) => !vacation.archived);
+      setVacations(filteredData as Vacation[]);
+    } else {
+      setError(error?.message || "Failed to fetch vacations");
+    }
     setLoading(false);
   }, []);
 
@@ -73,36 +79,60 @@ export function useAddVacation(
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  async function addVacation(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name || !destination || !startDate || !endDate) return;
+  async function addVacation({
+    name,
+    destination,
+    startDate,
+    endDate,
+  }: {
+    name: string;
+    destination: string;
+    startDate: string;
+    endDate: string;
+  }) {
+    if (!name || !destination || !startDate || !endDate) {
+      console.error("All fields are required to add a vacation.");
+      return;
+    }
 
     setLoading(true);
-    pushUndo();
+
+    console.log("Adding vacation:", {
+      name,
+      destination,
+      start_date: startDate,
+      end_date: endDate,
+      archived: false,
+    });
 
     try {
-      const { error } = await supabase
-        .from("vacations")
-        .insert([
-          { name, destination, start_date: startDate, end_date: endDate },
-        ]);
+      const { error } = await supabase.from("vacations").insert([
+        {
+          name,
+          destination,
+          start_date: startDate,
+          end_date: endDate,
+          archived: false,
+        },
+      ]);
 
-      if (error) throw new Error(error.message);
-
-      setName("");
-      setDestination("");
-      setStartDate("");
-      setEndDate("");
-      fetchVacations();
+      if (error) {
+        alert("Failed to add vacation. Please try again.");
+        console.error("Error adding vacation:", error);
+      } else {
+        alert("Vacation added successfully!");
+        fetchVacations(); // Refresh the vacation list
+      }
     } catch (err) {
-      console.error("Error adding vacation:", err);
+      alert("An unexpected error occurred. Please try again.");
+      console.error("Unexpected error:", err);
     } finally {
       setLoading(false);
     }
   }
 
   return {
-    addVacation,
+    loading,
     name,
     setName,
     destination,
@@ -111,6 +141,6 @@ export function useAddVacation(
     setStartDate,
     endDate,
     setEndDate,
-    loading,
+    addVacation,
   };
 }

@@ -40,30 +40,37 @@ function AuthForm({
     setMsg(null);
     setLoading(true);
 
-    const actions = {
-      login: async () => supabase.auth.signInWithPassword({ email, password }),
-      register: async () => supabase.auth.signUp({ email, password }),
-      reset: async () => supabase.auth.resetPasswordForEmail(resetEmail),
-    };
+    try {
+      const actions = {
+        login: async () =>
+          supabase.auth.signInWithPassword({ email, password }),
+        register: async () => supabase.auth.signUp({ email, password }),
+        reset: async () => supabase.auth.resetPasswordForEmail(resetEmail),
+      };
 
-    const { error, data } = await actions[mode]();
-    console.log(`${mode} response:`, { error, data });
+      const { error, data } = await actions[mode]();
+      console.log(`${mode} response:`, { error, data });
 
-    if (mode === "register" || mode === "reset") {
-      setMsg(
-        error
-          ? error.message
-          : mode === "register"
-          ? "Check your email for a confirmation link."
-          : "Check your email for a password reset link."
-      );
+      if (error) {
+        setMsg(error.message);
+        onAuth(error);
+      } else {
+        setMsg(
+          mode === "register"
+            ? "Check your email for a confirmation link."
+            : mode === "reset"
+            ? "Check your email for a password reset link."
+            : null
+        );
+        onAuth(null);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setMsg("An unexpected error occurred. Please try again later.");
+      onAuth(err);
+    } finally {
+      setLoading(false);
     }
-
-    if (mode === "login") {
-      onAuth(error);
-    }
-
-    setLoading(false);
   }
 
   useEffect(() => {

@@ -7,60 +7,91 @@ export async function handleArchiveVacation(
   fetchVacations: () => void,
   setToast: (toast: { message: string; type: "success" | "error" }) => void
 ) {
-  const confirmed = window.confirm(
-    "Are you sure you want to archive this vacation? You can restore it later from the archive."
-  );
-  if (confirmed) {
-    pushUndo();
-    const { error } = await supabase
-      .from("vacations")
-      .update({ archived: true })
-      .eq("id", vacation.id);
-    if (!error) {
-      fetchVacations();
-      setToast({ message: "Vacation archived.", type: "success" });
-    } else {
-      setToast({ message: error.message, type: "error" });
+  console.log("Vacation ID:", vacation.id);
+
+  if (vacation.archived) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this vacation?"
+    );
+    if (confirmed) {
+      console.log("Deleting vacation:", vacation);
+      const { error } = await supabase
+        .from("vacations")
+        .delete()
+        .eq("id", vacation.id);
+      console.log("Supabase query result:", { error });
+      if (!error) {
+        fetchVacations(); // Ensure vacation list is fetched after deletion
+        setToast({ message: "Vacation deleted.", type: "success" });
+      } else {
+        setToast({ message: error.message, type: "error" });
+      }
+    }
+    return; // Ensure the function exits after deletion
+  }
+
+  const { data: vacationData, error: fetchError } = await supabase
+    .from("vacations")
+    .select("archived")
+    .eq("id", Number(vacation.id));
+
+  console.log("Supabase response:", { vacationData, fetchError });
+
+  if (fetchError || !vacationData || vacationData.length === 0) {
+    setToast({ message: "Failed to fetch vacation status.", type: "error" });
+    return;
+  }
+
+  const isArchived = vacationData[0]?.archived ?? false;
+
+  if (!isArchived) {
+    const confirmed = window.confirm(
+      "Are you sure you want to archive this vacation? You can restore it later from the archive."
+    );
+    if (confirmed) {
+      pushUndo();
+      console.log("Archiving vacation:", vacation);
+      const { error } = await supabase
+        .from("vacations")
+        .update({ archived: true })
+        .eq("id", vacation.id);
+      console.log("Supabase query result:", { error });
+      if (!error) {
+        fetchVacations(); // Ensure vacation list is fetched after archiving
+        setToast({ message: "Vacation archived.", type: "success" });
+      } else {
+        setToast({ message: error.message, type: "error" });
+      }
     }
   }
 }
 
-export function handleUndo(
-  undoStack: Vacation[][],
-  redoStack: Vacation[][],
-  setUndoStack: (stack: Vacation[][]) => void,
-  setRedoStack: (stack: Vacation[][]) => void,
-  setVacations: (vacations: Vacation[]) => void,
-  setToast: (toast: { message: string; type: "info" }) => void
+export async function handleArchiveRestore(
+  vacation: Vacation,
+  fetchVacations: () => void,
+  setToast: (toast: { message: string; type: "success" | "error" }) => void
 ) {
-  if (undoStack.length === 0) return;
-  const newRedoStack = [undoStack[undoStack.length - 1], ...redoStack];
-  setRedoStack(newRedoStack);
+  const confirmed = window.confirm(
+    "Are you sure you want to restore this vacation?"
+  );
 
-  const newUndoStack = undoStack.slice(0, -1);
-  setUndoStack(newUndoStack);
+  if (!confirmed) return;
 
-  setVacations(undoStack[undoStack.length - 1]);
-  setToast({ message: "Undid last change.", type: "info" });
-}
+  console.log("Restoring vacation:", vacation);
 
-export function handleRedo(
-  undoStack: Vacation[][],
-  redoStack: Vacation[][],
-  setUndoStack: (stack: Vacation[][]) => void,
-  setRedoStack: (stack: Vacation[][]) => void,
-  setVacations: (vacations: Vacation[]) => void,
-  setToast: (toast: { message: string; type: "info" }) => void
-) {
-  if (redoStack.length === 0) return;
-  const updatedUndoStack = [...undoStack, redoStack[0]];
-  setUndoStack(updatedUndoStack);
+  const { error } = await supabase
+    .from("vacations")
+    .update({ archived: false })
+    .eq("id", vacation.id);
 
-  const updatedRedoStack = redoStack.slice(1);
-  setRedoStack(updatedRedoStack);
+  console.log("Supabase query result:", { error });
 
-  setVacations(redoStack[0]);
-  setToast({ message: "Redid change.", type: "info" });
+  if (!error) {
+    fetchVacations();
+    setToast({ message: "Vacation restored.", type: "success" });
+  } else {
+    setToast({ message: error.message, type: "error" });
+  }
 }
 
 export async function fetchPersonalEvents(userId: string) {

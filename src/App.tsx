@@ -11,6 +11,8 @@ import { darkTheme, lightTheme } from "./styles/theme";
 import { useVacations, useAddVacation } from "./hooks/useVacations";
 import VacationListItem from "./VacationListItem";
 import AuthForm from "./components/AuthForm";
+import VacationAddModal from "./VacationAddModal";
+import { handleArchiveVacation, handleArchiveRestore } from "./utils/handlers";
 
 interface Vacation {
   id: number;
@@ -29,23 +31,17 @@ interface AppProps {
 function App({ user, setUser }: AppProps) {
   const {
     vacations,
-    setVacations, // Added setVacations to manage vacation state
     loading: vacationsLoading,
     fetchVacations,
-  } = useVacations(() => {}, pushUndo);
+  } = useVacations(
+    () => {},
+    () => {}
+  );
 
-  const {
-    addVacation,
-    name,
-    setName,
-    destination,
-    setDestination,
-    startDate,
-    setStartDate,
-    endDate,
-    setEndDate,
-    loading: addVacationLoading,
-  } = useAddVacation(fetchVacations, pushUndo);
+  const { addVacation, loading: addVacationLoading } = useAddVacation(
+    fetchVacations,
+    () => {}
+  );
 
   const loading = vacationsLoading || addVacationLoading;
 
@@ -61,20 +57,19 @@ function App({ user, setUser }: AppProps) {
   const [selectedVacation, setSelectedVacation] = useState<Vacation | null>(
     null
   );
-  const [undoStack, setUndoStack] = useState<Vacation[][]>([]);
-  const [redoStack, setRedoStack] = useState<Vacation[][]>([]);
   const [dbStatus, setDbStatus] = useState("checking");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register" | "reset">(
     "login"
   );
+  const [showAddVacationModal, setShowAddVacationModal] = useState(false);
 
   const themeVars = theme === "dark" ? darkTheme : lightTheme;
 
   useEffect(() => {
-    fetchVacations();
-  }, [fetchVacations]);
+    fetchVacations(showArchived);
+  }, [showArchived, fetchVacations]);
 
   // Check database connection
   useEffect(() => {
@@ -112,50 +107,10 @@ function App({ user, setUser }: AppProps) {
     return () => listener?.subscription.unsubscribe();
   }, [setUser]);
 
-  // Undo/Redo functionality
-  function pushUndo() {
-    setUndoStack((prev) => [...prev, vacations]);
-    setRedoStack([]);
-  }
-
-  function handleUndo() {
-    if (undoStack.length === 0) return;
-    setRedoStack((prev) => [vacations, ...prev]);
-    const previousVacations = undoStack.pop() || [];
-    setVacations(previousVacations); // Correctly using setVacations
-  }
-
-  function handleRedo() {
-    if (redoStack.length === 0) return;
-    setUndoStack((prev) => [...prev, vacations]);
-    const nextVacations = redoStack.shift() || [];
-    setVacations(nextVacations); // Correctly using setVacations
-  }
-
-  // Archive a vacation
-  async function handleArchiveVacation(vacation: Vacation) {
-    if (vacation.archived) return;
-
-    const confirmed = window.confirm(
-      "Are you sure you want to archive this vacation? You can restore it later from the archive."
-    );
-    if (confirmed) {
-      pushUndo();
-      const { error } = await supabase
-        .from("vacations")
-        .update({ archived: true })
-        .eq("id", vacation.id);
-      if (!error) fetchVacations();
-      else console.error("Error archiving vacation:", error);
-    }
-  }
-
   // Save vacation edits
   function handleSaveVacation(e: React.FormEvent) {
     e.preventDefault();
     if (!editingVacation || !editingVacationValues) return;
-
-    pushUndo();
 
     supabase
       .from("vacations")
@@ -198,48 +153,52 @@ function App({ user, setUser }: AppProps) {
   // Render account page
   if (showAccount && user) {
     return (
-      <>
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            background: themeVars.background,
-            zIndex: -1,
-          }}
-          aria-hidden="true"
-        />
-        <NavBar
-          onCalendarToggle={() => setShowCalendar((prev) => !prev)}
-          themeVars={themeVars}
-          theme={theme}
-          setTheme={setTheme}
-          user={user}
-          setShowAccount={setShowAccount}
-          setShowCalendar={setShowCalendar}
-          setShowAuthModal={setShowAuthModal} // Pass the setShowAuthModal prop
-          handleLogout={async () => {
-            await supabase.auth.signOut();
-            setUser(null);
-            setShowAccount(false);
-          }}
-        />
-        <AccountPage
-          user={user}
-          onLogout={async () => {
-            await supabase.auth.signOut();
-            setUser(null);
-            setShowAccount(false);
-          }}
-          onHome={() => {
-            setShowAccount(false);
-            setShowCalendar(true);
-          }}
-          themeVars={themeVars}
-        />
-      </>
+      <UserContext.Provider value={{ user }}>
+        <div className="vp-main">
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              background: themeVars.background,
+              zIndex: -1,
+            }}
+            aria-hidden="true"
+          />
+          <NavBar
+            onCalendarToggle={() => setShowCalendar((prev) => !prev)}
+            themeVars={themeVars}
+            theme={theme}
+            setTheme={setTheme}
+            user={user}
+            setShowAccount={setShowAccount}
+            setShowCalendar={setShowCalendar}
+            setShowAuthModal={setShowAuthModal}
+            handleLogout={async () => {
+              await supabase.auth.signOut();
+              setUser(null);
+              setShowAccount(false);
+            }}
+          />
+          <div className="vp-content">
+            <AccountPage
+              user={user}
+              onLogout={async () => {
+                await supabase.auth.signOut();
+                setUser(null);
+                setShowAccount(false);
+              }}
+              onHome={() => {
+                setShowAccount(false);
+                setShowCalendar(true);
+              }}
+              themeVars={themeVars}
+            />
+          </div>
+        </div>
+      </UserContext.Provider>
     );
   }
 
@@ -283,7 +242,7 @@ function App({ user, setUser }: AppProps) {
           <VacationCalendar
             vacations={vacations}
             onVacationClick={setEditingVacation}
-            onEditVacation={pushUndo}
+            onEditVacation={() => {}} // Replaced `pushUndo` with an empty function
           />
         )}
         {editingVacation && (
@@ -296,44 +255,29 @@ function App({ user, setUser }: AppProps) {
             themeVars={themeVars}
           />
         )}
+        {showAddVacationModal && (
+          <VacationAddModal
+            onClose={() => setShowAddVacationModal(false)}
+            onSubmit={addVacation}
+            themeVars={themeVars}
+            style={{
+              maxWidth: "500px",
+              maxHeight: "80%",
+              overflowY: "auto",
+              borderRadius: "8px",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            }}
+          />
+        )}
         <div className="vp-content">
-          <form onSubmit={addVacation} className="vp-form">
-            <input
-              type="text"
-              placeholder="Trip Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="vp-input"
-            />
-            <input
-              type="text"
-              placeholder="Destination"
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              required
-              className="vp-input"
-            />
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              required
-              className="vp-input"
-            />
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              required
-              className="vp-input"
-            />
-            <button type="submit" disabled={loading} className="vp-button">
-              Add Vacation
-            </button>
-          </form>
           <aside className="vp-sidebar">
             <h2>Your Vacations</h2>
+            <button
+              onClick={() => setShowAddVacationModal(true)}
+              className="vp-button"
+            >
+              Add Vacation
+            </button>
             <input
               type="text"
               placeholder="Search vacations..."
@@ -358,7 +302,21 @@ function App({ user, setUser }: AppProps) {
                   themeVars={themeVars}
                   onSelect={() => setSelectedVacation(vacation)}
                   onEdit={openEditVacationModal}
-                  onDelete={() => handleArchiveVacation(vacation)}
+                  onDelete={() =>
+                    handleArchiveVacation(
+                      vacation,
+                      () => {}, // Placeholder for pushUndo
+                      fetchVacations,
+                      (toast) => console.log(toast) // Placeholder for setToast
+                    )
+                  }
+                  onRestore={() =>
+                    handleArchiveRestore(
+                      vacation, // Pass the entire vacation object
+                      fetchVacations,
+                      (toast) => console.log(toast) // Placeholder for setToast
+                    )
+                  }
                 />
               ))}
             </ul>
@@ -376,23 +334,6 @@ function App({ user, setUser }: AppProps) {
           </main>
         </div>
         <footer className="vp-footer">© 2025 Vacation Planner</footer>
-        <button
-          onClick={handleRedo}
-          disabled={redoStack.length === 0}
-          className="vp-button"
-        >
-          Redo
-        </button>
-        <button
-          onClick={handleUndo}
-          disabled={undoStack.length === 0}
-          className="vp-button"
-        >
-          Undo
-        </button>
-        <button onClick={() => setShowAuthModal(true)} className="vp-button">
-          Log In
-        </button>
 
         {showAuthModal && (
           <div className="auth-modal-wrapper">

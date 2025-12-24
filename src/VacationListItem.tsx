@@ -10,6 +10,7 @@ interface VacationListItemProps {
   onSelect?: (vac: Vacation) => void;
   onEdit?: (vac: Vacation) => void;
   onDelete?: (id: number) => void;
+  onRestore?: (id: number) => void; // Added onRestore prop
 }
 
 const VacationListItem: React.FC<VacationListItemProps> = ({
@@ -20,6 +21,7 @@ const VacationListItem: React.FC<VacationListItemProps> = ({
   onSelect,
   onEdit,
   onDelete,
+  onRestore, // Destructure onRestore prop
 }) => {
   const handleDelete = async (vacationId: number) => {
     try {
@@ -100,32 +102,71 @@ const VacationListItem: React.FC<VacationListItemProps> = ({
         >
           ✏️
         </button>
-        <button
-          title="Delete"
-          onClick={async () => {
-            if (vacation.archived) {
-              const confirmationMessage =
-                "Are you sure you want to permanently delete this archived vacation? This action cannot be undone.";
-              if (window.confirm(confirmationMessage)) {
+        {vacation.archived ? (
+          <>
+            <button
+              title="Restore"
+              onClick={() => onRestore && onRestore(vacation.id)} // Pass only the vacation ID
+              style={{
+                background: "none",
+                border: "none",
+                color: selected ? themeVars.text : "#fff",
+                cursor: "pointer",
+                fontSize: 18,
+                opacity: 0.7,
+                padding: 2,
+              }}
+              tabIndex={-1}
+            >
+              ⏪
+            </button>
+            <button
+              title="Delete"
+              onClick={async () => {
+                if (vacation.archived) {
+                  await handleDelete(vacation.id);
+                } else {
+                  onDelete && onDelete(vacation.id); // Archive logic handled in App.tsx without confirmation here
+                }
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: selected ? themeVars.text : "#fff",
+                cursor: "pointer",
+                fontSize: 18,
+                opacity: 0.7,
+                padding: 2,
+              }}
+              tabIndex={-1}
+            >
+              🗑️
+            </button>
+          </>
+        ) : (
+          <button
+            title="Delete"
+            onClick={async () => {
+              if (vacation.archived) {
                 await handleDelete(vacation.id);
+              } else {
+                onDelete && onDelete(vacation.id); // Archive logic handled in App.tsx without confirmation here
               }
-            } else {
-              onDelete && onDelete(vacation.id); // Archive logic handled in App.tsx without confirmation here
-            }
-          }}
-          style={{
-            background: "none",
-            border: "none",
-            color: selected ? themeVars.text : "#fff",
-            cursor: "pointer",
-            fontSize: 18,
-            opacity: 0.7,
-            padding: 2,
-          }}
-          tabIndex={-1}
-        >
-          🗑️
-        </button>
+            }}
+            style={{
+              background: "none",
+              border: "none",
+              color: selected ? themeVars.text : "#fff",
+              cursor: "pointer",
+              fontSize: 18,
+              opacity: 0.7,
+              padding: 2,
+            }}
+            tabIndex={-1}
+          >
+            🗑️
+          </button>
+        )}
       </div>
     </li>
   );
